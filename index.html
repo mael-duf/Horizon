@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Will you be my valentine?</title>
+  <style>
+    :root{
+      --bg:#2f32ff;
+      --card:#bf8de0;
+      --text:#1b1b1b;
+      --yes:#df0046;
+      --yesHover:#ee739c;
+      --no:#ffffff;
+      --shadow: 0 20px 60px rgba(0,0,0,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 800px at 50% 30%, #ffe1eb 0%, var(--bg) 60%, #f3b4c9 100%);
+      color:var(--text);
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+    }
+
+    .wrap{
+      width:min(720px, 92vw);
+      padding:24px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.6);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      padding:26px 22px 22px;
+      position:relative;
+      backdrop-filter: blur(6px);
+    }
+
+    .kitty{
+      width:185px;
+      height: 220px;
+      margin:0 auto 10px;
+      display:block;
+    }
+
+    h1{
+      margin:6px 0 16px;
+      text-align:center;
+      font-weight:800;
+      letter-spacing:.2px;
+      font-size: clamp(20px, 3.6vw, 34px);
+    }
+
+    .btnRow{
+      position:relative;
+      height:90px; /* zone où le bouton No peut bouger */
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+    }
+
+    button{
+      border:0;
+      cursor:pointer;
+      padding:14px 22px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.12);
+      transition: transform .12s ease, filter .12s ease;
+      user-select:none;
+    }
+    button:active{ transform: scale(.98); }
+
+    #yesBtn{
+      background:var(--yes);
+      color:white;
+      min-width:140px;
+      font-size:18px;
+    }
+    #yesBtn:hover{ background:var(--yesHover); }
+
+    #noBtn{
+      background:var(--no);
+      color:#333;
+      position:absolute;
+      left: 60%;
+      top: 50%;
+      transform: translate(-50%,-50%);
+      min-width:92px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.10);
+    }
+
+    .hint{
+      text-align:center;
+      margin-top:12px;
+      font-size:12px;
+      opacity:.7;
+    }
+
+    .hidden{ display:none !important; }
+
+    /* Écran “YAY” */
+    #yayScreen{
+      text-align:center;
+      padding: 6px 6px 2px;
+    }
+    #yayScreen h2{
+      margin:4px 0 10px;
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight:900;
+    }
+    #yayMedia{
+      width:min(420px, 86vw);
+      border-radius:16px;
+      box-shadow: 0 18px 55px rgba(0,0,0,.18);
+      border: 6px solid rgba(255,255,255,.6);
+      background:white;
+    }
+
+    /* Confettis */
+    .confetti{
+      position:fixed;
+      top:-10px;
+      width:10px;height:16px;
+      border-radius:3px;
+      pointer-events:none;
+      opacity:.95;
+      animation: fall linear forwards;
+    }
+    @keyframes fall{
+      to{
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 1;
+      }
+    }
+
+    .rightSideImg{
+      position: fixed;
+      right: 24px;
+      top: 88%;
+      transform: translateY(-50%);
+      width: 400px;      /* taille */
+      height: auto;
+      z-index: 1;        /* derrière la carte si besoin */
+      pointer-events: none; /* évite de bloquer les clics */
+      opacity: 0.95;
+    }
+
+  </style>
+</head>
+<img src="./horizonPK.png" class="rightSideImg" alt="decoration">
+<body>
+  <div class="wrap">
+    <div class="card">
+      <!-- petite tête -->
+      <!-- image tête -->
+      <img src="./NessieHeart.png" class="kitty" alt="tete">
+
+
+      <!-- Écran question -->
+      <div id="questionScreen">
+        <h1><span id="valName">black</span> veux-tu être la Horizon de mon coeur ?</h1>
+
+        <div class="btnRow" id="arena">
+          <button id="yesBtn">Yes</button>
+          <button id="noBtn" type="button">No</button>
+        </div>
+
+        <div class="hint">Le non est trop timide 😈</div>
+      </div>
+
+      <!-- Écran yay (sans répéter la question) -->
+      <div id="yayScreen" class="hidden">
+        <h2>YAY! 🎉</h2>
+
+        <!-- Mets ce que tu veux ici (gif, image, vidéo, etc.) -->
+        <img
+          id="yayMedia"
+          alt="celebration"
+          src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ2RuMXU2ajFjeXpoczVieXBzdnk2d283emYwNmFwMXVnZGM1ZThycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/aG2nqC6mwdHPatbc1W/giphy.gif"
+        />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== CONFIG ======
+    const VALENTINE_NAME = "black"; // change si tu veux
+
+    // Applique le nom
+    document.getElementById("valName").textContent = VALENTINE_NAME;
+
+    const arena = document.getElementById("arena");
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const questionScreen = document.getElementById("questionScreen");
+    const yayScreen = document.getElementById("yayScreen");
+
+    // Place "No" au hasard dans l'arène (sans sortir)
+    function moveNoButtonRandom() {
+      const a = arena.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      const pad = 6;
+      const maxX = a.width - b.width - pad;
+      const maxY = a.height - b.height - pad;
+
+      const x = pad + Math.random() * Math.max(0, maxX);
+      const y = pad + Math.random() * Math.max(0, maxY);
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top  = y + "px";
+      noBtn.style.transform = "translate(0,0)";
+    }
+
+    // Souris "proche" du bouton No ?
+    function isNear(mouseX, mouseY, rect, threshold = 90) {
+      const cx = rect.left + rect.width/2;
+      const cy = rect.top  + rect.height/2;
+      return Math.hypot(mouseX - cx, mouseY - cy) < threshold;
+    }
+
+    // Fuite du bouton No
+    document.addEventListener("mousemove", (e) => {
+      const rect = noBtn.getBoundingClientRect();
+      if (isNear(e.clientX, e.clientY, rect, 95)) {
+        moveNoButtonRandom();
+      }
+    });
+
+    // Bonus: si on arrive dessus au clavier aussi
+    noBtn.addEventListener("mouseenter", moveNoButtonRandom);
+    noBtn.addEventListener("focus", moveNoButtonRandom);
+
+    // Clic sur Yes => YAY + confettis
+    yesBtn.addEventListener("click", () => {
+      questionScreen.classList.add("hidden");
+      yayScreen.classList.remove("hidden");
+      launchConfetti(160);
+    });
+
+    // Init position
+    moveNoButtonRandom();
+
+    // Confettis (sans librairie)
+    function launchConfetti(count = 120) {
+      const colors = ["#ff3b7a", "#ffd166", "#06d6a0", "#118ab2", "#ffffff", "#8338ec"];
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement("div");
+        el.className = "confetti";
+        el.style.left = (Math.random() * 100) + "vw";
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.transform = `rotate(${Math.random()*360}deg)`;
+        el.style.width = (6 + Math.random()*10) + "px";
+        el.style.height = (10 + Math.random()*18) + "px";
+        el.style.animationDuration = (1.5 + Math.random()*2) + "s";
+        el.style.animationDelay = (Math.random()*0.15) + "s";
+        document.body.appendChild(el);
+        el.addEventListener("animationend", () => el.remove());
+      }
+    }
+  </script>
+</body>
+</html>
